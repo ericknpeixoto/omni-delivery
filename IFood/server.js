@@ -1,105 +1,100 @@
 const express = require ('express')
+const mysql = require('mysql2')
+require('dotenv').config()
+
+const env = process.env
+
+//Configuração do App
 const app = express()
 app.use(express.json())
+app.listen(3000, () => console.log ("ifood. Porta 3000."))
 
+//Configuração da conexão com MySQL
+const pool = mysql.createPool({
+    host: env.mysql_host,
+    user: env.mysql_user,
+    password: env.mysql_password,
+    port: env.mysql_port,
+    database: env.mysql_database,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
+})
+const poolPromise = pool.promise()
 
-let contador = 3
-let pedidos = [
-    {
-        idPedido: 1,
-        cnpjRestaturante: '11.939.409/0001-94',
-        cpfCliente: '515.539.680-85',
-        custo: 90.00,
-        desconto: 15.00,
-        total: 75.00,
-        dataInicio: '2021-10-15T08:05:00Z',
-        dataEntrega: '2021-10-15T09:00:00Z',
-        dataFim: '2021-10-15T09:05:00Z',
-        status: 'Entregue',
-        logradouro: 'Rua das Ruas',
-        numero: '14',
-        complemento: '',
-        cidade: 'São Paulo',
-        estado: 'São Paulo',
-        uf: 'SP',
-        cep: '03928232',
-    },
-    {
-        idPedido: 2,
-        cnpjRestaturante: '39.169.871/0001-79',
-        cpfCliente: '493.591.420-34',
-        custo: 50.00,
-        desconto: 5.00,
-        total: 45.00,
-        dataInicio: '2021-10-16T19:15:00Z',
-        dataEntrega: '2021-10-16T20:05:00Z',
-        dataFim: '2021-10-16T20:010:00Z',
-        status: 'Entregue',
-        logradouro: 'Rua das Ruas',
-        numero: '14',
-        complemento: '',
-        cidade: 'São Paulo',
-        estado: 'São Paulo',
-        uf: 'SP',
-        cep: '03928232',
-    }
-]
-
-app.post('/pedido', (req, res) => {
-    let pedido = preencherObjetoPedido(contador++, req.body)
-    pedidos.push(pedido)
-    res.status(201).json(pedidos)
+//Rotas de Pedidos
+app.get('/pedido', async (req, res) => {
+    const sqlQuery = 'SELECT * FROM tb_pedido'
+    const [ rows ] = await poolPromise.query(sqlQuery)
+    res.status(200).json(rows)
 })
 
-app.get('/pedido', (req, res) => {
-    res.json(pedidos)
+app.post('/pedido', async (req, res) => {
+    const pedido = preencherObjetoPedido(req.body)
+    
+    const { cnpj, cpf, logradouro, numeroEndereco, complementoEndereco, bairro, cidade, uf, cep} = pedido
+
+    const sqlQuery = `
+        INSERT INTO tb_pedido (
+            cnpj, 
+            cpf, 
+            logradouro, 
+            numeroEndereco, 
+            complementoEndereco, 
+            bairro, 
+            cidade, 
+            uf, 
+            cep
+        ) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `
+    const [result] = await poolPromise.query(sqlQuery, [cnpj, cpf, logradouro, numeroEndereco, complementoEndereco, bairro, cidade, uf, cep])
+    const [novoPedido] = await poolPromise.query(`SELECT * FROM tb_pedido WHERE idPedido = ${result.insertId}`)
+    res.status(201).json(novoPedido)
 })
 
+app.put('/pedido/:idPedido', async (req, res) => {
+    const idPedido = req.params.idPedido
+    const pedido = preencherObjetoPedido(req.body)
+    const { cnpj, cpf, logradouro, numeroEndereco, complementoEndereco, bairro, cidade, uf, cep} = pedido
 
-app.put('/pedido/:idPedido', (req, res) => {
-    let idPedido = req.params.idPedido
-    let indice = pedidos.findIndex(pedido => pedido.idPedido == idPedido)
-    let pedido = preencherObjetoPedido(idPedido, req.body)
-
-    pedidos[indice] = pedido
-
-    res.status(200).json(pedidos)
+    const sqlQuery = `
+        UPDATE tb_pedido SET
+            cnpj = ?,
+            cpf = ?,
+            logradouro = ?,
+            numeroEndereco = ?,
+            complementoEndereco = ?,
+            bairro = ?,
+            cidade = ?,
+            uf = ?,
+            cep = ?
+        WHERE idPedido = ?
+    `
+    
+    const [result] = await poolPromise.query(sqlQuery, [cnpj, cpf, logradouro, numeroEndereco, complementoEndereco, bairro, cidade, uf, cep, idPedido])
+    const [pedidoAtualizado] = await poolPromise.query(`SELECT * FROM tb_pedido WHERE idPedido = ${idPedido}`)
+    res.status(200).json(pedidoAtualizado)
 })
 
-app.delete('/pedido/:idPedido', (req, res) => {
-    let idPedido = req.params.idPedido
-    let indice = pedidos.findIndex(pedido => pedido.idPedido == idPedido)
-    if (indice == -1) {
-        res.status(204)
-    }
-
-    pedidos.splice(indice, 1)
-    res.status(200).json(pedidos)
+app.delete('/pedido/:idPedido', async (req, res) => {
+    const idPedido = req.params.idPedido
+    
+    const sqlQuery = 'DELETE FROM tb_pedido WHERE idPedido = ?'
+    const [result] = await poolPromise.query(sqlQuery, [idPedido])
+    result.affectedRows > 0 ? res.status(200).json(result) : res.status(200).send("Este pedido não existe.")
 })
 
-function preencherObjetoPedido(idPedido, body){
+function preencherObjetoPedido(body){
     return {
-        idPedido: idPedido,
-        cnpjRestaturante: body.cnpjRestaturante,
-        cpfCliente: body.cpfCliente,
-        custo: body.custo,
-        desconto: body.desconto,
-        total: body.total,
-        dataInicio: body.dataInicio,
-        dataEntrega: body.dataEntrega,
-        dataFim: body.dataFim,
-        status: body.status,
+        cnpj: body.cnpj,
+        cpf: body.cpf,
         logradouro: body.logradouro,
-        numero: body.numero,
-        complemento: body.complemento,
+        numeroEndereco: body.numeroEndereco,
+        complementoEndereco: body.complementoEndereco,
+        bairro: body.bairro,
         cidade: body.cidade,
-        estado: body.estado,
         uf: body.uf,
         cep: body.cep
     }
-} 
-
-
-
-app.listen(3000, () => console.log ("Classificação. Porta 3000."))
-
+}
