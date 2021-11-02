@@ -55,7 +55,7 @@ CREATE TABLE tb_pedido (
     cnpj CHAR(14) NOT NULL,
     cpf CHAR(11) NOT NULL,
     custo DOUBLE,
-    desconto DOUBLE,
+    desconto DOUBLE DEFAULT 0,
     custoFinal DOUBLE,
     horaPedido DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
     horaSaida DATETIME,
@@ -85,6 +85,20 @@ CREATE TABLE tb_itemPedido (
     CONSTRAINT fk_pedido FOREIGN KEY (idPedido) REFERENCES tb_pedido (idPedido)
 );
 
+DELIMITER $$
+CREATE TRIGGER `tr_insertCustoPedido` AFTER INSERT ON tb_itemPedido
+FOR EACH ROW BEGIN
+	UPDATE tb_pedido SET custo = (SELECT SUM(subtotal) FROM tb_itemPedido WHERE idPedido = NEW.idPedido) WHERE idPedido = NEW.idPedido;
+    UPDATE tb_pedido SET custoFinal = custo - desconto WHERE idPedido = NEW.idPedido;
+END $$
+
+CREATE TRIGGER `tr_updateCustoPedido` AFTER UPDATE ON tb_itemPedido 
+FOR EACH ROW BEGIN
+	UPDATE tb_pedido SET custo = (SELECT SUM(subtotal) FROM tb_itemPedido WHERE idPedido = NEW.idPedido) WHERE idPedido = NEW.idPedido;
+    UPDATE tb_pedido SET custoFinal = custo - desconto WHERE idPedido = NEW.idPedido;
+END $$
+DELIMITER ;
+
 INSERT INTO tb_cliente VALUES
 ("11111111111", "Ricardo", "dos Santos", "1978-06-12", "Rua X", 123, "", "Bairro 1", "Cidade 1", "SP", "24412081"),
 ("22222222222", "Joana", "da Silva", "2000-12-03", "Rua Y", 456, "BL 9 AP 13", "Bairro 11", "Cidade 7", "RJ", "01258192"),
@@ -100,15 +114,7 @@ INSERT INTO tb_item VALUES (NULL, "11111111111111", NULL, "Pizza de Calabresa", 
 						   (NULL, "22222222222222", 1, "Sushi", "Porção de Sushi", 21.99);
 
 INSERT INTO tb_pedido VALUES 
-(NULL, "11111111111111", "11111111111", 29.99, 0, 29.99, "2021-10-31 17:20:11", "2021-10-31 17:40:11", "2021-10-31 17:50:11", 4, "Rua X", 123, "", "Bairro 1", "Cidade 1", "SP", "24412081" ),
-(NULL, "22222222222222", "22222222222", 21.99, 0, 21.99, "2021-10-31 17:20:11", "2021-10-31 17:40:11", "2021-10-31 17:50:11", 4, "Rua Y", 456, "BL 9 AP 13", "Bairro 11", "Cidade 7", "RJ", "01258192" );
+(NULL, "11111111111111", "11111111111", null, 0, null, "2021-10-31 17:20:11", "2021-10-31 17:40:11", "2021-10-31 17:50:11", 4, "Rua X", 123, "", "Bairro 1", "Cidade 1", "SP", "24412081" ),
+(NULL, "22222222222222", "22222222222", null, 0, null, "2021-10-31 17:20:11", "2021-10-31 17:40:11", "2021-10-31 17:50:11", 4, "Rua Y", 456, "BL 9 AP 13", "Bairro 11", "Cidade 7", "RJ", "01258192" );
 
 INSERT INTO tb_itemPedido VALUES (1, 1, 1, 29.99, 29.99), (2, 2, 1, 21.99, 21.99);
-
-DELIMITER //
-CREATE TRIGGER tr_custoPedido AFTER INSERT ON tb_itemPedido FOR EACH ROW
-BEGIN
-	UPDATE tb_pedido SET custo = (SELECT SUM(subtotal) FROM tb_itemPedido WHERE idPedido = NEW.idPedido;
-    UPDATE tb_pedido SET custoFinal = custo - desconto WHERE idPedido = NEW.idPedido;
-END;
-DELIMITER ;

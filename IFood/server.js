@@ -32,7 +32,7 @@ app.get('/pedido', async (req, res) => {
 app.post('/pedido', async (req, res) => {
     const pedido = preencherObjetoPedido(req.body)
     
-    const { cnpj, cpf, logradouro, numeroEndereco, complementoEndereco, bairro, cidade, uf, cep} = pedido
+    const { cnpj, cpf, logradouro, numeroEndereco, complementoEndereco, bairro, cidade, uf, cep, itensPedido} = pedido
 
     const sqlQuery = `
         INSERT INTO tb_pedido (
@@ -49,6 +49,9 @@ app.post('/pedido', async (req, res) => {
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
     const [result] = await poolPromise.query(sqlQuery, [cnpj, cpf, logradouro, numeroEndereco, complementoEndereco, bairro, cidade, uf, cep])
+    
+    await cadastrarItensDoPedido(result.insertId, itensPedido)
+
     const [novoPedido] = await poolPromise.query(`SELECT * FROM tb_pedido WHERE idPedido = ${result.insertId}`)
     res.status(201).json(novoPedido)
 })
@@ -56,7 +59,7 @@ app.post('/pedido', async (req, res) => {
 app.put('/pedido/:idPedido', async (req, res) => {
     const idPedido = req.params.idPedido
     const pedido = preencherObjetoPedido(req.body)
-    const { cnpj, cpf, logradouro, numeroEndereco, complementoEndereco, bairro, cidade, uf, cep} = pedido
+    const { cnpj, cpf, logradouro, numeroEndereco, complementoEndereco, bairro, cidade, uf, cep, itensPedido} = pedido
 
     const sqlQuery = `
         UPDATE tb_pedido SET
@@ -72,7 +75,10 @@ app.put('/pedido/:idPedido', async (req, res) => {
         WHERE idPedido = ?
     `
     
-    const [result] = await poolPromise.query(sqlQuery, [cnpj, cpf, logradouro, numeroEndereco, complementoEndereco, bairro, cidade, uf, cep, idPedido])
+    await poolPromise.query(sqlQuery, [cnpj, cpf, logradouro, numeroEndereco, complementoEndereco, bairro, cidade, uf, cep, idPedido])
+    
+    await atualizarItensDoPedido(idPedido, itensPedido)
+
     const [pedidoAtualizado] = await poolPromise.query(`SELECT * FROM tb_pedido WHERE idPedido = ${idPedido}`)
     res.status(200).json(pedidoAtualizado)
 })
@@ -95,6 +101,37 @@ function preencherObjetoPedido(body){
         bairro: body.bairro,
         cidade: body.cidade,
         uf: body.uf,
-        cep: body.cep
+        cep: body.cep,
+        itensPedido: body.itens
     }
+}
+
+function cadastrarItensDoPedido (idPedido, itensPedido) {
+    itensPedido.map(async item => {
+        let { idItem, quantidade, precoUnitario } = item
+        let subtotal = quantidade * precoUnitario
+
+        const sqlQuery = `
+            INSERT INTO 
+            tb_itemPedido (idItem, idPedido, quantidade, precoUnitario, subTotal)
+            VALUES (?, ?, ?, ?, ?)
+        `
+        await poolPromise.query(sqlQuery, [idItem, idPedido, quantidade, precoUnitario, subtotal])
+    })
+}
+
+function atualizarItensDoPedido(idPedido, itensPedido) {
+    itensPedido.map(async item => {
+        let { idItem, quantidade, precoUnitario } = item
+        let subtotal = quantidade * precoUnitario
+        
+        const sqlQuery = `
+            UPDATE tb_itemPedido SET 
+                quantidade = ?,
+                precoUnitario = ?, 
+                subTotal = ?
+            WHERE idItem = ? AND idPedido = ?
+        `
+        await poolPromise.query(sqlQuery, [quantidade, precoUnitario, subtotal, idItem, idPedido])
+    })
 }
