@@ -2,13 +2,20 @@ const express = require ('express');
 const app = express();
 var mongoose = require("mongoose");
 var Pedido = require("./app/models/pedido");
-mongoose.connect("mongodb://localhost:27017/UberEats");
+// mongoose.connect("mongodb://localhost:27017/UberEats");
+mongoose.connect("mongodb+srv://naka:1006@cluster0.lc7od.mongodb.net/uber-eats?retryWrites=true&w=majority", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true
+});
+
+const db = mongoose.connection;
+db.on("error", (error) => console.error(error));
+db.once("open", () => console.log("Conectado..."));
 
 app.use(express.json());
 var router = express.Router();
 
 router.use(function (req, res, next){
-    console.log("Algo está acontecendo aqui...");
     next();
 });
 
