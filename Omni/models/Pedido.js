@@ -1,19 +1,13 @@
 
 const mongoose = require('mongoose');
 
-module.exports = mongoose.model('Pedido', {
-    cnpjRestaurante: String,
-    cpfCliente: String,
-    valor: Number,
-    cupomDesconto: Number,
+module.exports = mongoose.model('pedidos', {
+    idPlataforma: String,
+    idPedido: String,
+    custo: Number,
+    desconto: Number,
+    frete: Number,
     total: Number,
-    enderecoEntrega: String,
-    cidade: String,
-    estado: String,
-    uf: String,
-    cep: String,
-    dataSolicitacao: Date,
-    prazoEntrega: Date,
-    dataFinalizacao: Date,
-    status: Number,  
+    data: Date,
+    status: Number,
 });
