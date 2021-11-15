@@ -1,5 +1,6 @@
 const express = require ('express')
 const mysql = require('mysql2')
+const axios = require('axios')
 require('dotenv').config()
 
 const env = process.env
@@ -52,8 +53,26 @@ app.post('/pedido', async (req, res) => {
     
     await cadastrarItensDoPedido(result.insertId, itensPedido)
 
-    const [novoPedido] = await poolPromise.query(`SELECT * FROM tb_pedido WHERE idPedido = ${result.insertId}`)
-    res.status(201).json(novoPedido)
+    setTimeout(async () => {
+        const [novoPedido] = await poolPromise.query(`SELECT * FROM tb_pedido WHERE idPedido = ${result.insertId}`)
+
+        res.status(201).json(novoPedido[0])
+
+        console.log(novoPedido)        
+
+        const pedidoOmni = {
+            idPlataforma: '619207019ead91a88608cf48',
+            idPedido: `${result.insertId}`,
+            custo: novoPedido[0].custo,
+            desconto: novoPedido[0].desconto,
+            frete: 10,
+            total: novoPedido[0].custoFinal + 10,
+            data: Date.now(),
+            status: 0
+        }
+
+        axios.post('http://localhost:5000/pedido', pedidoOmni)
+    }, 2000)        
 })
 
 app.put('/pedido/:idPedido', async (req, res) => {
@@ -80,7 +99,21 @@ app.put('/pedido/:idPedido', async (req, res) => {
     await atualizarItensDoPedido(idPedido, itensPedido)
 
     const [pedidoAtualizado] = await poolPromise.query(`SELECT * FROM tb_pedido WHERE idPedido = ${idPedido}`)
-    res.status(200).json(pedidoAtualizado)
+    res.status(200).json(pedidoAtualizado[0])
+})
+
+//Rota para atualização de status
+
+app.put('/pedido/:idPedido/:status', async (req, res) => {
+    const idPedido = req.params.idPedido
+    const status = req.params.status
+
+    const sqlQuery = `UPDATE tb_pedido SET statusPedido = ? WHERE idPedido = ?`
+    
+    await poolPromise.query(sqlQuery, [status, idPedido])
+    
+    const [pedidoAtualizado] = await poolPromise.query(`SELECT * FROM tb_pedido WHERE idPedido = ${idPedido}`)
+    res.status(200).json(pedidoAtualizado[0])
 })
 
 app.delete('/pedido/:idPedido', async (req, res) => {
