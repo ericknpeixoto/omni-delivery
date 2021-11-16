@@ -30,11 +30,14 @@ app.get('/pedido', async (req, res) => {
     res.status(200).json(rows)
 })
 
+/**
+ * Rota para cadastro do pedido
+ */
 app.post('/pedido', async (req, res) => {
     const pedido = preencherObjetoPedido(req.body)
+    const { cnpj, cpf, logradouro, numeroEndereco, complementoEndereco, bairro, cidade, uf, cep, itensPedido, custo, frete, desconto, custoFinal} = pedido
     
-    const { cnpj, cpf, logradouro, numeroEndereco, complementoEndereco, bairro, cidade, uf, cep, itensPedido} = pedido
-
+    //Cadastro do Pedido no MySQL
     const sqlQuery = `
         INSERT INTO tb_pedido (
             cnpj, 
@@ -45,40 +48,45 @@ app.post('/pedido', async (req, res) => {
             bairro, 
             cidade, 
             uf, 
-            cep
+            cep,
+            custo,
+            frete,
+            desconto,
+            custoFinal
         ) 
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `
-    const [result] = await poolPromise.query(sqlQuery, [cnpj, cpf, logradouro, numeroEndereco, complementoEndereco, bairro, cidade, uf, cep])
+    const [result] = await poolPromise.query(sqlQuery, [cnpj, cpf, logradouro, numeroEndereco, complementoEndereco, bairro, cidade, uf, cep, custo, frete, desconto, custoFinal])
     
+    //Cadastro dos itens do pedido
     await cadastrarItensDoPedido(result.insertId, itensPedido)
 
-    setTimeout(async () => {
-        const [novoPedido] = await poolPromise.query(`SELECT * FROM tb_pedido WHERE idPedido = ${result.insertId}`)
+    //Envio do JSON do novo pedido para o solicitante
+    const [novoPedido] = await poolPromise.query(`SELECT * FROM tb_pedido WHERE idPedido = ${result.insertId}`)
+    res.status(201).json(novoPedido[0])
 
-        res.status(201).json(novoPedido[0])
+    //Envio do Pedido criado para o Omni
+    const pedidoOmni = {
+        idPlataforma: '619207019ead91a88608cf48',
+        idPedido: `${result.insertId}`,
+        custo: novoPedido[0].custo,
+        desconto: novoPedido[0].desconto,
+        frete: novoPedido[0].frete,
+        total: novoPedido[0].custoFinal,
+        data: Date.now(),
+        status: 0
+    }
 
-        console.log(novoPedido)        
-
-        const pedidoOmni = {
-            idPlataforma: '619207019ead91a88608cf48',
-            idPedido: `${result.insertId}`,
-            custo: novoPedido[0].custo,
-            desconto: novoPedido[0].desconto,
-            frete: 10,
-            total: novoPedido[0].custoFinal + 10,
-            data: Date.now(),
-            status: 0
-        }
-
-        axios.post('http://localhost:5000/pedido', pedidoOmni)
-    }, 2000)        
+    axios.post('http://localhost:5000/pedido', pedidoOmni)
 })
 
+/**
+ * Rota para atualização dos dados do pedido
+ */
 app.put('/pedido/:idPedido', async (req, res) => {
     const idPedido = req.params.idPedido
     const pedido = preencherObjetoPedido(req.body)
-    const { cnpj, cpf, logradouro, numeroEndereco, complementoEndereco, bairro, cidade, uf, cep, itensPedido} = pedido
+    const { cnpj, cpf, logradouro, numeroEndereco, complementoEndereco, bairro, cidade, uf, cep, itensPedido, custo, frete, desconto, custoFinal} = pedido
 
     const sqlQuery = `
         UPDATE tb_pedido SET
@@ -90,11 +98,15 @@ app.put('/pedido/:idPedido', async (req, res) => {
             bairro = ?,
             cidade = ?,
             uf = ?,
-            cep = ?
+            cep = ?,
+            custo = ?,
+            frete = ?,
+            desconto = ?,
+            custoFinal = ?
         WHERE idPedido = ?
     `
     
-    await poolPromise.query(sqlQuery, [cnpj, cpf, logradouro, numeroEndereco, complementoEndereco, bairro, cidade, uf, cep, idPedido])
+    await poolPromise.query(sqlQuery, [cnpj, cpf, logradouro, numeroEndereco, complementoEndereco, bairro, cidade, uf, cep, custo, frete, desconto, custoFinal, idPedido])
     
     await atualizarItensDoPedido(idPedido, itensPedido)
 
@@ -102,8 +114,9 @@ app.put('/pedido/:idPedido', async (req, res) => {
     res.status(200).json(pedidoAtualizado[0])
 })
 
-//Rota para atualização de status
-
+/**
+ * Rota para atualização do status do pedido
+ */
 app.put('/pedido/:idPedido/:status', async (req, res) => {
     const idPedido = req.params.idPedido
     const status = req.params.status
@@ -116,6 +129,21 @@ app.put('/pedido/:idPedido/:status', async (req, res) => {
     res.status(200).json(pedidoAtualizado[0])
 })
 
+/**
+ * Rota consulta do status do pedido
+ */
+ app.get('/pedido/:idPedido', async (req, res) => {
+    const idPedido = req.params.idPedido
+
+    const sqlQuery = `SELECT * FROM tb_pedido WHERE idPedido = ?`
+    const [resultado] = await poolPromise.query(sqlQuery, [idPedido])
+    
+    res.status(200).json(resultado[0])
+})
+
+/**
+ * Rota para excluir o pedido
+ */
 app.delete('/pedido/:idPedido', async (req, res) => {
     const idPedido = req.params.idPedido
     
@@ -124,7 +152,13 @@ app.delete('/pedido/:idPedido', async (req, res) => {
     result.affectedRows > 0 ? res.status(200).json(result) : res.status(200).send("Este pedido não existe.")
 })
 
+/**
+ * Preenche o objeto pedido antes de cadastrar ou alterar no banco de dados
+ */
 function preencherObjetoPedido(body){
+    const custo = calcularCusto(body.itens)
+    const custoFinal = (custo + parseInt(body.frete) - parseInt(body.desconto)).toFixed(2)
+
     return {
         cnpj: body.cnpj,
         cpf: body.cpf,
@@ -135,10 +169,17 @@ function preencherObjetoPedido(body){
         cidade: body.cidade,
         uf: body.uf,
         cep: body.cep,
-        itensPedido: body.itens
+        itensPedido: body.itens,
+        custo: custo,
+        frete: body.frete,
+        desconto: body.desconto,
+        custoFinal: custoFinal
     }
 }
 
+/**
+ * Realiza o cadastro de cada item do pedido no banco de dados
+ */
 function cadastrarItensDoPedido (idPedido, itensPedido) {
     itensPedido.map(async item => {
         let { idItem, quantidade, precoUnitario } = item
@@ -153,6 +194,9 @@ function cadastrarItensDoPedido (idPedido, itensPedido) {
     })
 }
 
+/**
+ * Atualiza os dados dos itens do pedido no banco de dados
+ */
 function atualizarItensDoPedido(idPedido, itensPedido) {
     itensPedido.map(async item => {
         let { idItem, quantidade, precoUnitario } = item
@@ -167,4 +211,16 @@ function atualizarItensDoPedido(idPedido, itensPedido) {
         `
         await poolPromise.query(sqlQuery, [quantidade, precoUnitario, subtotal, idItem, idPedido])
     })
+}
+
+/**
+ * Calcula e retorna o custo do pedido com base nos itens selecionados
+ */
+function calcularCusto(itensPedido) {
+    let custo = 0
+    itensPedido.map(item => {
+        custo += (item.quantidade * item.precoUnitario)
+    })
+
+    return custo
 }

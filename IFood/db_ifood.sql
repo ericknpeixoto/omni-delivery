@@ -55,6 +55,7 @@ CREATE TABLE tb_pedido (
     cnpj CHAR(14) NOT NULL,
     cpf CHAR(11) NOT NULL,
     custo DOUBLE,
+    frete DOUBLE,
     desconto DOUBLE DEFAULT 0,
     custoFinal DOUBLE,
     horaPedido DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP(),
@@ -82,9 +83,10 @@ CREATE TABLE tb_itemPedido (
     subTotal DOUBLE NOT NULL,
     
     CONSTRAINT pk_itemPedido PRIMARY KEY (idItem, idPedido),
-    CONSTRAINT fk_pedido FOREIGN KEY (idPedido) REFERENCES tb_pedido (idPedido)
+    CONSTRAINT fk_pedido FOREIGN KEY (idPedido) REFERENCES tb_pedido (idPedido) ON UPDATE CASCADE ON DELETE CASCADE
 );
 
+/*
 DELIMITER $$
 CREATE TRIGGER `tr_insertCustoPedido` AFTER INSERT ON tb_itemPedido
 FOR EACH ROW BEGIN
@@ -98,6 +100,7 @@ FOR EACH ROW BEGIN
     UPDATE tb_pedido SET custoFinal = custo - desconto WHERE idPedido = NEW.idPedido;
 END $$
 DELIMITER ;
+*/
 
 INSERT INTO tb_cliente VALUES
 ("11111111111", "Ricardo", "dos Santos", "1978-06-12", "Rua X", 123, "", "Bairro 1", "Cidade 1", "SP", "24412081"),
@@ -114,7 +117,7 @@ INSERT INTO tb_item VALUES (NULL, "11111111111111", NULL, "Pizza de Calabresa", 
 						   (NULL, "22222222222222", 1, "Sushi", "Porção de Sushi", 21.99);
 
 INSERT INTO tb_pedido VALUES 
-(NULL, "11111111111111", "11111111111", null, 0, null, "2021-10-31 17:20:11", "2021-10-31 17:40:11", "2021-10-31 17:50:11", 4, "Rua X", 123, "", "Bairro 1", "Cidade 1", "SP", "24412081" ),
-(NULL, "22222222222222", "22222222222", null, 0, null, "2021-10-31 17:20:11", "2021-10-31 17:40:11", "2021-10-31 17:50:11", 4, "Rua Y", 456, "BL 9 AP 13", "Bairro 11", "Cidade 7", "RJ", "01258192" );
+(NULL, "11111111111111", "11111111111", 29.99, 10, 0, 29.99, "2021-10-31 17:20:11", "2021-10-31 17:40:11", "2021-10-31 17:50:11", 0, "Rua X", 123, "", "Bairro 1", "Cidade 1", "SP", "24412081" ),
+(NULL, "22222222222222", "22222222222", 21.99, 5.49, 0, 21.99, "2021-10-31 17:20:11", "2021-10-31 17:40:11", "2021-10-31 17:50:11", 0, "Rua Y", 456, "BL 9 AP 13", "Bairro 11", "Cidade 7", "RJ", "01258192" );
 
 INSERT INTO tb_itemPedido VALUES (1, 1, 1, 29.99, 29.99), (2, 2, 1, 21.99, 21.99);
