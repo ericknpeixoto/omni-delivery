@@ -19,24 +19,12 @@ router.use(function (req, res, next){
     next();
 });
 
+
 router.route("/pedido")
     /* 1) Método: Criar pedido (acessar em: POST http://localhost:4000/pedido)  */
     .post(function(req, res) {
-        var pedido = new Pedido();
-        pedido.cnpjRestaturante = req.body.cnpjRestaturante;
-        pedido.cpfCliente = req.body.cpfCliente;
-        pedido.valor = req.body.valor;
-        pedido.cupomDesconto = req.body.cupomDesconto;
-        pedido.total = req.body.total;
-        pedido.enderecoEntrega = req.body.enderecoEntrega;
-        pedido.cidade = req.body.cidade;
-        pedido.estado = req.body.estado;
-        pedido.uf = req.body.uf;
-        pedido.cep = req.body.cep;
-        pedido.dataSolicitacao = req.body.dataSolicitacao;
-        pedido.prazoEntrega = req.body.prazoEntrega;
-        pedido.dataFinalizacao = req.body.dataFinalizacao;
-        pedido.situacao = req.body.situacao;
+        let pedido = new Pedido();
+        preencherObjetoPedido(pedido, req.body);
         
         pedido.save(function(error) {
             if(error)
@@ -73,21 +61,8 @@ router.route('/pedido/:pedido_id')
     .put(function(req, res) {
         Pedido.findById(req.params.pedido_id, function(error, pedido) {
             if (error) res.send("Id do Pedido não encontrado....: " + error);
-
-            pedido.cnpjRestaturante = req.body.cnpjRestaturante;
-            pedido.cpfCliente = req.body.cpfCliente;
-            pedido.valor = req.body.valor;
-            pedido.cupomDesconto = req.body.cupomDesconto;
-            pedido.total = req.body.total;
-            pedido.enderecoEntrega = req.body.enderecoEntrega;
-            pedido.cidade = req.body.cidade;
-            pedido.estado = req.body.estado;
-            pedido.uf = req.body.uf;
-            pedido.cep = req.body.cep;
-            pedido.dataSolicitacao = req.body.dataSolicitacao;
-            pedido.prazoEntrega = req.body.prazoEntrega;
-            pedido.dataFinalizacao = req.body.dataFinalizacao;
-            pedido.situacao = req.body.situacao;
+            
+            preencherObjetoPedido(pedido, req.body);
 
             pedido.save(function(error) {
                 if(error)
@@ -101,7 +76,7 @@ router.route('/pedido/:pedido_id')
     /* 5) Método: Excluir por Id (acessar: http://localhost:4000/pedido/:pedido_id) */
     .delete(function(req, res) {
         
-        Pedido.remove({
+        Pedido.deleteOne({
             _id: req.params.pedido_id
             }, function(error) {
                 if (error) res.send("Id do Pedido não encontrado....: " + error);
@@ -115,3 +90,33 @@ app.use(router);
 
 app.listen(4000, () => console.log ("UberEats. Porta 4000."))
 
+
+function preencherObjetoPedido(pedido, body){
+    let custo = calcularCusto(body.itens);
+    let custoFinal = custo + parseInt(body.frete) - parseInt(body.cupomDesconto);
+
+    pedido.cnpjRestaturante = body.cnpjRestaturante;
+    pedido.cpfCliente = body.cpfCliente;
+    pedido.frete = body.frete;
+    pedido.cupomDesconto = body.cupomDesconto;
+    pedido.enderecoEntrega = body.enderecoEntrega;
+    pedido.cidade = body.cidade;
+    pedido.estado = body.estado;
+    pedido.uf = body.uf;
+    pedido.cep = body.cep;
+    pedido.dataSolicitacao = body.dataSolicitacao;
+    pedido.prazoEntrega = body.prazoEntrega;
+    pedido.dataFinalizacao = body.dataFinalizacao;
+    pedido.situacao = body.situacao;
+    pedido.total = custoFinal;
+    pedido.itens = [];
+    body.itens.map(async item => {
+        pedido.itens.push(item);
+    });
+}
+
+function calcularCusto(itensPedido) {
+    return itensPedido.reduce(function(anteriores, atual) {
+        return anteriores + (atual.quantidade * atual.preco);
+      }, 0);
+}

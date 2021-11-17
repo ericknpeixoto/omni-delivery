@@ -1,4 +1,3 @@
-
 var mongoose = require('mongoose');
 var Schema = mongoose.Schema;
 
@@ -8,6 +7,7 @@ var pedidoSchema = new Schema({
     valor: Number,
     cupomDesconto: Number,
     total: Number,
+    frete: Number,
     enderecoEntrega: String,
     cidade: String,
     estado: String,
@@ -17,6 +17,12 @@ var pedidoSchema = new Schema({
     prazoEntrega: Date,
     dataFinalizacao: Date,
     situacao: String,  
+    itens : [{
+                idItemCatalogo: Number,
+                quantidade: Number,
+                preco: Number
+            }]
 });
 
 module.exports = mongoose.model('Pedido', pedidoSchema);
+
