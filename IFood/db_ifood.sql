@@ -108,10 +108,10 @@ INSERT INTO tb_cliente VALUES
 ("33333333333", "Leandro", "Menezes", "1992-01-08", "Rua Z", 789, "", "Bairro 5", "Cidade 4", "PE", "9002851");
 
 INSERT INTO tb_restaurante VALUES ("11111111111111", "Pizzaria do Zé", "pizzariadoze@outlook.com", "11984144108", "2019-07-04",
-									"", "Rua H", 9812, "", "Bairro 9", "Cidade 10", "SP", "55921029", 1, 1);
+									"http://localhost:5000/pedido", "Rua H", 9812, "", "Bairro 9", "Cidade 10", "SP", "55921029", 1, 1);
 
 INSERT INTO tb_restaurante VALUES ("22222222222222", "Comida Japonesa", "atendimento@comidajaponesa.com", "2147182851", current_date(),
-									"", "Rua Y", 14, "", "Bairro 5", "Cidade 2", "RJ", "51251982", 1, 0);
+									"http://localhost:5000/pedido", "Rua Y", 14, "", "Bairro 5", "Cidade 2", "RJ", "51251982", 1, 0);
                                     
 INSERT INTO tb_item VALUES (NULL, "11111111111111", NULL, "Pizza de Calabresa", "É uma pizza feita com...calabresa", 29.99),
 						   (NULL, "22222222222222", 1, "Sushi", "Porção de Sushi", 21.99);
