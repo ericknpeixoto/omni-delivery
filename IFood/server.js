@@ -1,18 +1,23 @@
-const express = require('express');
-const mysql = require('mysql2');
-const axios = require('axios');
-require('dotenv').config();
+const express = require('express')
+const mysql = require('mysql2')
+const axios = require('axios')
+require('dotenv').config()
+const env = process.env
 
-const env = process.env;
+/**
+ * Configuração do App
+ */
+const app = express()
+app.use(express.json())
 
-//Configuração do App
-const app = express();
-app.use(express.json());
 app.listen(3000, () =>
   console.log('Executando o serviço "ifood" na Porta 3000.')
-);
+)
 
-//Configuração da conexão com MySQL
+/**
+ * Configuração da conexão com o MySQL
+ */
+
 const pool = mysql.createPool({
   host: env.mysql_host,
   user: env.mysql_user,
@@ -22,24 +27,25 @@ const pool = mysql.createPool({
   waitForConnections: true,
   connectionLimit: 10,
   queueLimit: 0
-});
+})
+
 const poolPromise = pool.promise();
 
 /**
  * Rota para a listagem de todos os pedidos
  */
 app.get('/pedido', async (req, res) => {
-  const sqlQuery = 'SELECT * FROM tb_pedido';
-  const [rows] = await poolPromise.query(sqlQuery);
-  res.status(200).json(rows);
-});
+  const sqlQuery = 'SELECT * FROM tb_pedido'
+  const [rows] = await poolPromise.query(sqlQuery)
+  res.status(200).json(rows)
+})
 
 /**
  * Rota para cadastro do pedido
  */
 app.post('/pedido', async (req, res) => {
   //Cria um objeto JSON com os dados do pedido
-  const pedido = preencherObjetoPedido(req.body);
+  const pedido = preencherObjetoPedido(req.body)
 
   //Cadastro do Pedido no MySQL
   const sqlQuery = `
@@ -60,7 +66,7 @@ app.post('/pedido', async (req, res) => {
             horaPedido
         ) 
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `;
+    `
 
   const [result] = await poolPromise.query(sqlQuery, [
     pedido.cnpj,
@@ -104,7 +110,7 @@ app.post('/pedido', async (req, res) => {
     total: novoPedido[0].custoFinal,
     data: novoPedido[0].horaPedido,
     status: 0
-  };
+  }
 
   await axios.post(`${urls[0].urlOpenDelivery}`, pedidoOmni);
 });
@@ -205,6 +211,19 @@ app.put('/pedido/:idPedido/:status', async (req, res) => {
     `SELECT * FROM tb_pedido WHERE idPedido = ${idPedido}`
   );
   res.status(200).json(pedidoAtualizado[0]);
+
+  const [urls] = await poolPromise.query(
+    `SELECT urlOpenDelivery FROM tb_restaurante r WHERE r.cnpj = ?`,
+    [pedidoAtualizado[0].cnpj]
+  );
+
+  const pedidoOmni = {
+    idPlataforma: '619207019ead91a88608cf48',
+    idPedido: pedidoAtualizado[0].idPedido,
+    status: pedidoAtualizado[0].statusPedido
+  }
+
+  await axios.post(`${urls[0].urlOpenDelivery}/status`, pedidoOmni)
 });
 
 /**
