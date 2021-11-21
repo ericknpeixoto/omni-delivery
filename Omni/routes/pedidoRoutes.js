@@ -4,7 +4,7 @@ const PlataformaPedido = require('../models/PlataformaPedido');
 const functions = require('../utils/functions');
 
 router.post('/', async (req, res) => {
-
+  
   const { idPlataforma, idPedido} = req.body;
   
   if (!idPlataforma || !idPedido) {
@@ -25,24 +25,48 @@ router.post('/', async (req, res) => {
   };
   
   try {
-  
+    
     await Pedido.create(pedido);
     res.status(201).json({message:'Pedido inserido com sucesso!'});
-
+    
   } catch (err) {
     
+    res.status(500).json({error: err});
+  }
+  
+});
+
+
+router.post('/status', async (req, res) => {
+
+  const { idPlataforma, idPedido, status } = req.body;
+
+  if (!idPlataforma || !idPedido || !status) {
+    
+    res.status(422).json({error: 'Erro, dados insuficiente!'});
+    return;
+  }
+
+  try {
+
+    const filter = { idPlataforma: idPlataforma, idPedido: idPedido };
+    await Pedido.updateOne(filter, { status: status });
+
+    res.json({message:'Status de pedido atualizado com sucesso!'});;
+    
+  } catch (error) {
     res.status(500).json({error: err});
   }
 
 });
 
 router.get('/:idPlataforma/:idPedido', async (req, res) => {
-
+  
   try {
     const {idPlataforma, idPedido} = req.params;
     const pedido = await Pedido.findOne({ idPlataforma: idPlataforma, idPedido: idPedido });
     const plataforma = await PlataformaPedido.findOne({_id: idPlataforma});
-
+    
     const resp = {
       plataforma: plataforma.nome,
       idPedido: pedido.idPedido,
@@ -56,10 +80,12 @@ router.get('/:idPlataforma/:idPedido', async (req, res) => {
     res.status(200).json(resp);
     
   } catch (err) {
-
+    
     res.status(500).json({error: err});
   }
-
+  
 });
+
+
 
 module.exports = router;
