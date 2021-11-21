@@ -1,5 +1,6 @@
 const express = require ('express');
 const app = express();
+const axios = require('axios');
 var mongoose = require("mongoose");
 var Pedido = require("./app/models/pedido");
 // mongoose.connect("mongodb://localhost:27017/UberEats");
@@ -10,7 +11,6 @@ mongoose.connect("mongodb+srv://naka:1006@cluster0.lc7od.mongodb.net/uber-eats?r
 
 const db = mongoose.connection;
 db.on("error", (error) => console.error(error));
-db.once("open", () => console.log("Conectado..."));
 
 app.use(express.json());
 var router = express.Router();
@@ -21,20 +21,20 @@ router.use(function (req, res, next){
 
 
 router.route("/pedido")
-    /* 1) Método: Criar pedido (acessar em: POST http://localhost:4000/pedido)  */
+    /* Criar pedido (acessar em: POST http://localhost:4000/pedido)  */
     .post(function(req, res) {
         let pedido = new Pedido();
         preencherObjetoPedido(pedido, req.body);
         
-        pedido.save(function(error) {
-            if(error)
-                res.send('Erro ao tentar salvar o Pedido....: ' + error);
+        pedido.save(function(error, room) {
+            if(error) res.send('Erro ao tentar salvar o Pedido....: ' + error);
             
             res.status(201).json({ message: 'Pedido Cadastrado com Sucesso!' });
+            enviarPedidoParaOmniDelivery(room._id, pedido);
         });
     })
 
-    /* 2) Método: Selecionar todos pedidos (acessar em: GET http://localhost:4000/pedido)  */
+    /* Selecionar todos pedidos (acessar em: GET http://localhost:4000/pedido)  */
     .get(function(req, res) {
         Pedido.find(function(error, pedidos) {
             if(error) 
@@ -46,8 +46,7 @@ router.route("/pedido")
 
 //Rotas que irão terminar em '/pedido/:pedido_id':
 router.route('/pedido/:pedido_id')
-
-    /* 3) Método: Selecionar por Id: (acessar em: GET http://localhost:4000/pedido/:pedido_id) */
+    /* Selecionar por Id: (acessar em: GET http://localhost:4000/pedido/:pedido_id) */
     .get(function (req, res) {
         Pedido.findById(req.params.pedido_id, function(error, pedido) {
             if(error)
@@ -57,7 +56,7 @@ router.route('/pedido/:pedido_id')
         });
     })
 
-    /* 4) Método: Atualizar por Id: (acessar em: PUT http://localhost:4000/pedido/:pedido_id) */
+    /* Atualizar por Id: (acessar em: PUT http://localhost:4000/pedido/:pedido_id) */
     .put(function(req, res) {
         Pedido.findById(req.params.pedido_id, function(error, pedido) {
             if (error) res.send("Id do Pedido não encontrado....: " + error);
@@ -73,7 +72,7 @@ router.route('/pedido/:pedido_id')
         });
     })
 
-    /* 5) Método: Excluir por Id (acessar: http://localhost:4000/pedido/:pedido_id) */
+    /* Excluir por Id (acessar: DELETE http://localhost:4000/pedido/:pedido_id) */
     .delete(function(req, res) {
         
         Pedido.deleteOne({
@@ -83,6 +82,33 @@ router.route('/pedido/:pedido_id')
 
                 res.json({ message: 'Pedido Excluído com Sucesso!' });
             });
+    });
+
+router.route('/pedido/:pedido_id/:status')
+    /* Rota para atualização do status do pedido: (acessar em: PUT http://localhost:4000/pedido/:pedido_id/:status) */
+    .put(function(req, res) {
+        Pedido.findById(req.params.pedido_id, function(error, pedido) {
+            if (error) res.send("Pedido não encontrado....: " + error);
+            
+            let status = req.params.status;
+            pedido.statusPedido = status;
+
+            switch (status) {
+                case '2':
+                  pedido.dataSaida = dataAtual();
+                  break;
+                case '3':
+                    pedido.dataFinalizacao =  dataAtual();
+                    break;
+            }
+
+            pedido.save(function(error) {
+                if(error)
+                    res.send('Erro ao atualizar o pedido....: ' + error);
+
+                res.status(200).json({ message: 'Pedido atualizado com sucesso!' });
+            });
+        });
     });
 
 
@@ -106,8 +132,10 @@ function preencherObjetoPedido(pedido, body){
     pedido.cep = body.cep;
     pedido.dataSolicitacao = body.dataSolicitacao;
     pedido.prazoEntrega = body.prazoEntrega;
+    pedido.dataSaida = body.dataSaida;
     pedido.dataFinalizacao = body.dataFinalizacao;
     pedido.situacao = body.situacao;
+    pedido.custoItens = custo;
     pedido.total = custoFinal;
     pedido.itens = [];
     body.itens.map(async item => {
@@ -120,3 +148,36 @@ function calcularCusto(itensPedido) {
         return anteriores + (atual.quantidade * atual.preco);
       }, 0);
 }
+
+async function enviarPedidoParaOmniDelivery(pedido_id, pedido){
+    const pedidoOmni = {
+        idPlataforma: '6191ea688ede35b5ccc7ec54',
+        idPedido: `${pedido_id}`,
+        custo: pedido.custoItens,
+        desconto: pedido.cupomDesconto,
+        frete: pedido.frete,
+        total: pedido.total,
+        data: pedido.dataSolicitacao,
+        status: 0
+    };
+
+    await axios.post(`http://localhost:5000/pedido`, pedidoOmni);
+}
+
+/**
+ * Obtem e retorna a data atual em formato UTC
+ */
+ function dataAtual() {
+    let data = new Date();
+    return new Date(
+      Date.UTC(
+        data.getFullYear(),
+        data.getMonth(),
+        data.getDate(),
+        data.getHours(),
+        data.getMinutes(),
+        data.getSeconds()
+      )
+    );
+  }
+  

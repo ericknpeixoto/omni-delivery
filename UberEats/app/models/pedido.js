@@ -6,6 +6,7 @@ var pedidoSchema = new Schema({
     cpfCliente: String,
     valor: Number,
     cupomDesconto: Number,
+    custoItens: Number,
     total: Number,
     frete: Number,
     enderecoEntrega: String,
@@ -15,8 +16,10 @@ var pedidoSchema = new Schema({
     cep: String,
     dataSolicitacao: Date,
     prazoEntrega: Date,
+    dataSaida: Date,
     dataFinalizacao: Date,
     situacao: String,  
+    statusPedido: Number,
     itens : [{
                 idItemCatalogo: Number,
                 quantidade: Number,
