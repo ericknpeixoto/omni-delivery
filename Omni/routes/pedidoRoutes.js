@@ -2,6 +2,7 @@ const router = require('express').Router();
 const Pedido = require('../models/Pedido');
 const PlataformaPedido = require('../models/PlataformaPedido');
 const functions = require('../utils/functions');
+const axios = require('axios');
 
 router.post('/', async (req, res) => {
   
@@ -83,7 +84,29 @@ router.get('/:idPlataforma/:idPedido', async (req, res) => {
     
     res.status(500).json({error: err});
   }
-  
+});
+
+router.get('/detalhe/:idPlataforma/:idPedido', async (req, res) => {
+
+  try {
+    const {idPlataforma, idPedido} = req.params;
+
+    const urlPlataforma  = await PlataformaPedido.findOne({ _id: idPlataforma}).select('url'); 
+    const url = `${urlPlataforma.url}/pedido/${idPedido}`
+
+    axios.get(url).then(resp => {
+      
+      const pedido = resp.data;
+      res.json(pedido);
+
+    }).catch(error => {
+      console.error(error.toJSON());
+    });
+    
+
+  } catch (error) {
+    res.status(500).json({error: err});
+  }
 });
 
 
