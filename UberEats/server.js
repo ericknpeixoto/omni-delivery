@@ -85,8 +85,8 @@ router.route('/pedido/:pedido_id')
     });
 
 router.route('/pedido/:pedido_id/:status')
-    /* Rota para atualização do status do pedido: (acessar em: PUT http://localhost:4000/pedido/:pedido_id/:status) */
-    .put(function(req, res) {
+    /* Rota para atualização do status do pedido: (acessar em: POST http://localhost:4000/pedido/:pedido_id/:status) */
+    .post(function(req, res) {
         let idPedido = req.params.pedido_id;
         Pedido.findById(idPedido, function(error, pedido) {
             if (error) res.send("Pedido não encontrado....: " + error);
@@ -108,8 +108,6 @@ router.route('/pedido/:pedido_id/:status')
                     res.send('Erro ao atualizar o pedido....: ' + error);
 
                 res.status(200).json({ message: 'Pedido atualizado com sucesso!' });
-
-                enviarStatusPedidoParaOmniDelivery(idPedido, pedido);
             });
         });
     });
@@ -168,15 +166,6 @@ async function enviarPedidoParaOmniDelivery(pedido_id, pedido){
     await axios.post(`http://localhost:5000/pedido`, pedidoOmni);
 }
 
-async function enviarStatusPedidoParaOmniDelivery(pedido_id, pedido){
-    const pedidoOmni = {
-        idPlataforma: '6191ea688ede35b5ccc7ec54',
-        idPedido: pedido_id,
-        status: pedido.statusPedido
-    };
-
-    await axios.post(`http://localhost:5000/pedido/status`, pedidoOmni);
-}
 
 /**
  * Obtem e retorna a data atual em formato UTC
