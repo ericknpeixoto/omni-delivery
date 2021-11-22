@@ -1,0 +1,154 @@
+{
+	"info": {
+		"_postman_id": "0efaa799-8e6c-439c-97f1-0bd724df914a",
+		"name": "Omni Delivery",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "UberEats",
+			"item": [
+				{
+					"name": "Listar Pedidos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:4000/pedido",
+							"host": [
+								"localhost"
+							],
+							"port": "4000",
+							"path": [
+								"pedido"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Criar Pedido",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"cnpjRestaturante\": \"11.939.409/0001-94\",\r\n    \"cpfCliente\": \"515.539.680-85\",\r\n    \"frete\": 10.00,\r\n    \"cupomDesconto\": 15.00,\r\n    \"enderecoEntrega\": \"Rua das Ruas, 14\",\r\n    \"cidade\": \"São Paulo\",\r\n    \"estado\": \"São Paulo\",\r\n    \"uf\": \"SP\",\r\n    \"cep\": \"03928232\",\r\n    \"dataSolicitacao\": \"2021-10-15T08:05:00.000Z\",\r\n    \"prazoEntrega\": \"2021-10-15T09:00:00.000Z\",\r\n    \"dataSaida\": \"2021-10-15T08:35:00.000Z\",\r\n    \"dataFinalizacao\": \"2021-10-15T09:05:00.000Z\",\r\n    \"situacao\": \"Entregue\",\r\n    \"itens\": [\r\n        {\"idItemCatalogo\": 1, \"quantidade\": 3, \"preco\": 30.5 },\r\n        {\"idItemCatalogo\": 2, \"quantidade\": 2, \"preco\": 20}\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:4000/pedido",
+							"host": [
+								"localhost"
+							],
+							"port": "4000",
+							"path": [
+								"pedido"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Alterar Pedido",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"cnpjRestaturante\": \"11.939.409/0001-94\",\r\n    \"cpfCliente\": \"515.539.680-85\",\r\n    \"frete\": 15.00,\r\n    \"cupomDesconto\": 20.00,\r\n    \"enderecoEntrega\": \"Rua das Ruas, 14\",\r\n    \"cidade\": \"São Paulo\",\r\n    \"estado\": \"São Paulo\",\r\n    \"uf\": \"SP\",\r\n    \"cep\": \"03928232\",\r\n    \"dataSolicitacao\": \"2021-10-15T08:05:00.000Z\",\r\n    \"prazoEntrega\": \"2021-10-15T09:00:00.000Z\",\r\n    \"dataSaida\": \"2021-10-15T08:35:00.000Z\",\r\n    \"dataFinalizacao\": \"2021-10-15T09:05:00.000Z\",\r\n    \"situacao\": \"Entregue\",\r\n    \"statusPedido\": 3,\r\n    \"itens\": [\r\n        {\"idItemCatalogo\": 1, \"quantidade\": 1, \"preco\": 49.99},\r\n        {\"idItemCatalogo\": 2, \"quantidade\": 2, \"preco\": 39.99}\r\n    ]\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:4000/pedido/619ad0c1bdd0e2a924195482",
+							"host": [
+								"localhost"
+							],
+							"port": "4000",
+							"path": [
+								"pedido",
+								"619ad0c1bdd0e2a924195482"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Excluir Pedido",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:4000/pedido/61945876d34e6a617ecda32a",
+							"host": [
+								"localhost"
+							],
+							"port": "4000",
+							"path": [
+								"pedido",
+								"61945876d34e6a617ecda32a"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Alterar Status",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "localhost:4000/pedido/619ad0c1bdd0e2a924195482/3",
+							"host": [
+								"localhost"
+							],
+							"port": "4000",
+							"path": [
+								"pedido",
+								"619ad0c1bdd0e2a924195482",
+								"3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Consultar Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:4000/pedido/619ad0c1bdd0e2a924195482",
+							"host": [
+								"localhost"
+							],
+							"port": "4000",
+							"path": [
+								"pedido",
+								"619ad0c1bdd0e2a924195482"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}
