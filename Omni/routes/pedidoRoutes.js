@@ -37,7 +37,7 @@ router.route('/')
     }
   })
   .get(async (req, res) => {
-
+    
     try {
       const pedidos = await Pedido.find();
       res.json(pedidos);

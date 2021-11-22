@@ -1,9 +1,11 @@
 require('dotenv').config();
 const express = require('express');
+const jwt  = require('jsonwebtoken');
 const app = express();
 const mongoose = require('mongoose');
 const PlataformaPedido = require('./models/PlataformaPedido');
 const urlDB = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASSWORD}@cluster0.lc7od.mongodb.net/omni-delivery?retryWrites=true&w=majority`;
+const SECRET = 'testee'
 
 app.use(express.json());
 
@@ -17,10 +19,30 @@ mongoose.connect(urlDB)
   .catch(error => console.error(error));
 
 
-//rotas API
-const pedidoRoutes = require('./routes/pedidoRoutes');
-app.use('/pedido', pedidoRoutes);
+function verifyJWT(req, res, next) {
 
+  const token = req.headers['x-access-token'];
+  
+  jwt.verify(token, SECRET, (err, decoded) => {
+
+    if (err) return res.status(401).end();
+
+    next();  
+  });
+}
+
+
+//rotas API
+app.post('/login', (req, res) => {
+  const { user } = req.body;
+
+  if (user == process.env.user) {
+    const token = jwt.sign({user}, SECRET, {expiresIn: 300}); // 300 segundos
+    return res.json({access_token: token});
+  }
+
+  res.status(401).end();
+});
 
 app.get('/plataforma/:id', async (req, res) => {
 
@@ -33,3 +55,8 @@ app.get('/plataforma/:id', async (req, res) => {
     res.status(500).json({error: err});
   }
 });
+
+const pedidoRoutes = require('./routes/pedidoRoutes');
+app.use('/pedido', verifyJWT, pedidoRoutes, );
+
+
