@@ -4,38 +4,48 @@ const PlataformaPedido = require('../models/PlataformaPedido');
 const functions = require('../utils/functions');
 const axios = require('axios');
 
-router.post('/', async (req, res) => {
+router.route('/')
+  .post(async (req, res) => {
   
-  const { idPlataforma, idPedido} = req.body;
-  
-  if (!idPlataforma || !idPedido) {
+    const { idPlataforma, idPedido} = req.body;
     
-    res.status(422).json({error: 'Erro, dados insuficientes!'});
-    return;
-  }
-  
-  const pedido = {
-    idPlataforma,
-    idPedido,
-    custo: req.body.custo,
-    desconto: req.body.desconto,
-    frete: req.body.frete,
-    total: req.body.total,
-    data: req.body.data, 
-    status: req.body.status,
-  };
-  
-  try {
+    if (!idPlataforma || !idPedido) {
+      
+      res.status(422).json({error: 'Erro, dados insuficientes!'});
+      return;
+    }
     
-    await Pedido.create(pedido);
-    res.status(201).json({message:'Pedido inserido com sucesso!'});
+    const pedido = {
+      idPlataforma,
+      idPedido,
+      custo: req.body.custo,
+      desconto: req.body.desconto,
+      frete: req.body.frete,
+      total: req.body.total,
+      data: req.body.data, 
+      status: req.body.status,
+    };
     
-  } catch (err) {
-    
-    res.status(500).json({error: err});
-  }
-  
-});
+    try {
+      
+      await Pedido.create(pedido);
+      res.status(201).json({message:'Pedido inserido com sucesso!'});
+      
+    } catch (err) {
+      
+      res.status(500).json({error: err});
+    }
+  })
+  .get(async (req, res) => {
+
+    try {
+      const pedidos = await Pedido.find();
+      res.json(pedidos);
+      
+    } catch (error) {
+      res.status(500).json({error: err});
+    }
+  })
 
 
 router.post('/status', async (req, res) => {
@@ -60,6 +70,7 @@ router.post('/status', async (req, res) => {
   }
 
 });
+
 
 router.get('/:idPlataforma/:idPedido', async (req, res) => {
   
