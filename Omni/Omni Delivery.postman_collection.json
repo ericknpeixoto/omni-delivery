@@ -1,0 +1,324 @@
+{
+	"info": {
+		"_postman_id": "2dc3aa1d-3a6b-427b-8bd2-a31a5334a7b9",
+		"name": "Omni Delivery",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "iFood",
+			"item": [
+				{
+					"name": "Listar Pedidos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:3000/pedido",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"pedido"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Criar Pedido",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"cnpj\": \"11111111111111\",\r\n    \"cpf\": \"11111111111\",\r\n    \"logradouro\": \"Rua X\",\r\n    \"numeroEndereco\": 891,\r\n    \"complementoEndereco\": \"\", \r\n    \"bairro\": \"Bairro A\", \r\n    \"cidade\": \"Cidade 1\", \r\n    \"uf\": \"SP\", \r\n    \"cep\": \"49198571\",\r\n    \"itens\": [\r\n        {\"idItem\": 1, \"quantidade\": 1, \"precoUnitario\": 29.99}\r\n    ],\r\n    \"frete\": 10,\r\n    \"desconto\": 5\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3000/pedido",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"pedido"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Alterar Pedido",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"cnpj\": \"11111111111111\",\r\n    \"cpf\": \"11111111111\",\r\n    \"logradouro\": \"Rua Y\",\r\n    \"numeroEndereco\": 891,\r\n    \"complementoEndereco\": \"\", \r\n    \"bairro\": \"Bairro A\", \r\n    \"cidade\": \"Cidade 1\", \r\n    \"uf\": \"SP\", \r\n    \"cep\": \"49198571\",\r\n    \"itens\": [\r\n        {\"idItem\": 1, \"quantidade\": 3, \"precoUnitario\": 29.99}\r\n    ],\r\n    \"frete\": 5,\r\n    \"desconto\": 6\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:3000/pedido/3",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"pedido",
+								"3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Excluir Pedido",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": {
+							"raw": "localhost:3000/pedido/3",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"pedido",
+								"3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Alterar Status",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"url": {
+							"raw": "localhost:3000/pedido/3/1",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"pedido",
+								"3",
+								"1"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Consultar Status",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:3000/pedido/3",
+							"host": [
+								"localhost"
+							],
+							"port": "3000",
+							"path": [
+								"pedido",
+								"3"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Omni",
+			"item": [
+				{
+					"name": "Login - Token",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": null
+					},
+					"response": []
+				},
+				{
+					"name": "Listar pedidos",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYWxleCIsImlhdCI6MTYzNzYwNjcyOSwiZXhwIjoxNjM3NjA3MDI5fQ.rPzq8XT62j5axdxEw4Xy5wu_y4dKwi2Z3WqoPKOODic",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "localhost:5000/pedido",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"pedido"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "GET PEDIDO - ID",
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "x-access-token",
+								"value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyIjoiYWxleCIsImlhdCI6MTYzNzYwNjM4NSwiZXhwIjoxNjM3NjA2Njg1fQ.RcZZ1LaSMzij0A8pnb1VfAzxDXtqxdhn4lgm4G6ee8E",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "localhost:5000/pedido/619207019ead91a88608cf48/3",
+							"host": [
+								"localhost"
+							],
+							"port": "5000",
+							"path": [
+								"pedido",
+								"619207019ead91a88608cf48",
+								"3"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Inserir Pedido",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"idPlataforma\": \"6191ea688ede35b5ccc7ec54\",\r\n    \"idPedido\": \"121s\",\r\n    \"custo\": \"310\",\r\n    \"desconto\": \"0\",\r\n    \"frete\": \"10\",\r\n    \"total\": \"320\",\r\n    \"data\": \"2021-11-14T21:30:00\",\r\n    \"status\": \"1\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{omniUrl}}/pedido",
+							"host": [
+								"{{omniUrl}}"
+							],
+							"path": [
+								"pedido"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Atualizar status",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"idPlataforma\":\"619975b5ec40dd3d9c121d06\",\r\n    \"idPedido\":\"3\",\r\n    \"status\":\"2\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{omniUrl}}/pedido/status",
+							"host": [
+								"{{omniUrl}}"
+							],
+							"path": [
+								"pedido",
+								"status"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Detalhe pedido",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": null
+					},
+					"response": []
+				},
+				{
+					"name": "GET PLATAFORMA",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{omniUrl}}/plataforma/6191ea688ede35b5ccc7ec54",
+							"host": [
+								"{{omniUrl}}"
+							],
+							"path": [
+								"plataforma",
+								"6191ea688ede35b5ccc7ec54"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Uber Eats Pedido",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": null
+			},
+			"response": []
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "omniUrl",
+			"value": "localhost:5000"
+		}
+	]
+}
