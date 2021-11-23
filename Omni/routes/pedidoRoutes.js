@@ -63,10 +63,18 @@ router.post('/status', async (req, res) => {
     const filter = { idPlataforma: idPlataforma, idPedido: idPedido };
     await Pedido.updateOne(filter, { status: status });
 
-    res.json({message:'Status de pedido atualizado com sucesso!'});;
+    const urlPedido = await PlataformaPedido.findOne(filter).select('url');
+    
+    await axios.post(`${urlPedido.url}/pedido/${idPedido}/${status}`, null, {
+      headers: {
+        'Content-Length': 0
+      }
+    });
+
+    res.json({message:'Status de pedido atualizado com sucesso!'});
     
   } catch (error) {
-    res.status(500).json({error: err});
+    res.status(500).json({error: error});
   }
 
 });
