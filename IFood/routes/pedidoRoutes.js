@@ -4,12 +4,18 @@ const axios = require('axios');
 const Pedido = require('../models/Pedido.js');
 const poolPromise = require('../models/ConexaoBancoFactory.js');
 
+/**
+ * Listagem de todos os pedidos
+ */
 router.route('/').get(async (req, res) => {
     const sqlQuery = 'SELECT * FROM tb_pedido';
     const [rows] = await poolPromise.query(sqlQuery);
     res.status(200).json(rows);
 });
 
+/**
+ * Criação do pedido
+ */
 router.route('/').post(async (req, res) => {
     const pedido = new Pedido(req.body).getDados();
 
@@ -67,6 +73,9 @@ router.route('/').post(async (req, res) => {
     await axios.post(`${urls[0].urlOpenDelivery}`, pedidoOmni);
 });
 
+/**
+ * Consulta de um pedido específico através do ID
+ */
 router.route('/:idPedido').get(async (req, res) => {
     const idPedido = req.params.idPedido;
 
@@ -83,6 +92,10 @@ router.route('/:idPedido').get(async (req, res) => {
     res.status(200).json(resultado[0]);
 
 })
+
+/**
+ * Alteração do Pedido
+ */
 
 router.route('/:idPedido').put(async (req, res) => {
     const idPedido = req.params.idPedido;
@@ -132,6 +145,9 @@ router.route('/:idPedido').put(async (req, res) => {
     res.status(200).json(pedidoAtualizado[0]);
 });
 
+/**
+ * Exclusão do Pedido
+ */
 router.route('/:idPedido').delete(async (req, res) => {
     const idPedido = req.params.idPedido;
 
