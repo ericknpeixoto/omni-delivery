@@ -18,7 +18,6 @@ var pedidoSchema = new Schema({
     prazoEntrega: Date,
     dataSaida: Date,
     dataFinalizacao: Date,
-    situacao: String,  
     statusPedido: Number,
     itens : [{
                 idItemCatalogo: Number,
