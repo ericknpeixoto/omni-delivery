@@ -1,12 +1,5 @@
 const express = require('express');
-const mysql = require('mysql2');
-const axios = require('axios');
-
-const Pedido = require('./models/Pedido.js');
 const pedidoRoutes = require('./routes/pedidoRoutes.js')
-
-require('dotenv').config();
-const env = process.env;
 
 /**
  * Configuração do App
