@@ -63,15 +63,15 @@ router.post('/status', async (req, res) => {
     const filter = { idPlataforma: idPlataforma, idPedido: idPedido };
     await Pedido.updateOne(filter, { status: status });
 
-    const urlPedido = await PlataformaPedido.findOne(filter).select('url');
+    const plataforma = await getPlataforma(idPlataforma);
     
-    await axios.post(`${urlPedido.url}/pedido/${idPedido}/${status}`, null, {
+    await axios.post(`${plataforma.url}/pedido/${idPedido}/${status}`, null, {
       headers: {
         'Content-Length': 0
       }
     });
 
-    res.json({message:'Status de pedido atualizado com sucesso!'});
+    res.json({message:'Status do pedido atualizado com sucesso!'});
     
   } catch (error) {
     res.status(500).json({error: error});
@@ -85,7 +85,7 @@ router.get('/:idPlataforma/:idPedido', async (req, res) => {
   try {
     const {idPlataforma, idPedido} = req.params;
     const pedido = await Pedido.findOne({ idPlataforma: idPlataforma, idPedido: idPedido });
-    const plataforma = await PlataformaPedido.findOne({_id: idPlataforma});
+    const plataforma = await getPlataforma(idPlataforma);
     
     const resp = {
       plataforma: plataforma.nome,
@@ -110,13 +110,16 @@ router.get('/detalhe/:idPlataforma/:idPedido', async (req, res) => {
   try {
     const {idPlataforma, idPedido} = req.params;
 
-    const urlPlataforma  = await PlataformaPedido.findOne({ _id: idPlataforma}).select('url'); 
-    const url = `${urlPlataforma.url}/pedido/${idPedido}`
+    const plataforma  = await getPlataforma(idPlataforma);
+    const url = `${plataforma.url}/pedido/${idPedido}`;
 
     axios.get(url).then(resp => {
       
       const pedido = resp.data;
-      res.json(pedido);
+      res.json({
+        pedido,
+        plataforma: plataforma.nome
+      });
 
     }).catch(error => {
       console.error(error.toJSON());
@@ -128,6 +131,10 @@ router.get('/detalhe/:idPlataforma/:idPedido', async (req, res) => {
   }
 });
 
+
+async function getPlataforma(idPlataforma) {
+  return await PlataformaPedido.findOne({ _id: idPlataforma}); 
+}
 
 
 module.exports = router;
